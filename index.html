@@ -4,206 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pi Task & Booster</title>
+    <!-- Integrasi Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script>
+        Pi.init({ version: "2.0" });
+    </script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f8f9fa; color: #333; margin: 0; padding: 20px; }
-        h1 { color: #6a0dad; margin-bottom: 5px; }
-        .subtitle { color: #666; margin-bottom: 20px; }
-        #status { font-weight: bold; padding: 10px; border-radius: 5px; margin: 10px 0; background: #e9ecef; }
-        #timer { font-size: 32px; font-weight: bold; margin: 20px; color: #6a0dad; background: white; display: inline-block; padding: 10px 20px; border-radius: 50px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        .tasks-container { max-width: 500px; margin: 20px auto; text-align: left; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .task { display: flex; align-items: center; margin: 15px 0; font-size: 16px; transition: 0.3s; padding: 10px; border-radius: 8px; }
-        .task:hover { background: #f0f0f0; }
-        .task input[type="checkbox"] { margin-right: 15px; transform: scale(1.3); cursor: pointer; }
-        .task.completed { background: #d4edda; color: #155724; border-radius: 8px; }
-        .task.completed label { text-decoration: line-through; }
-        
-        #progress-bar-container { background: #eee; border-radius: 10px; height: 10px; margin: 10px 0; }
-        #progress-fill { background: #4CAF50; height: 100%; width: 0%; border-radius: 10px; transition: 0.5s; }
-        #progress-text { font-size: 14px; font-weight: bold; margin-bottom: 20px; }
-
-        button { width: 100%; max-width: 300px; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 30px; border: none; cursor: pointer; margin: 10px 0; transition: 0.3s; }
-        #shareBtn { background: #4CAF50; color: white; }
-        #boosterBtn { background: #6a0dad; color: white; }
-        button:disabled { background: #ccc !important; cursor: not-allowed; transform: scale(1) !important; }
-        button:active { transform: scale(0.98); }
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; color: #333; margin: 0; padding: 20px; }
+        h1 { color: #6a0dad; }
+        #status { font-size: 18px; margin: 20px; }
+        #timer { font-size: 36px; font-weight: bold; margin: 30px; color: #6a0dad; }
+        button { padding: 15px 30px; font-size: 18px; background: #6a0dad; color: white; border: none; cursor: pointer; margin: 10px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .tasks-container { max-width: 600px; margin: 20px auto; text-align: left; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .task { display: flex; align-items: center; margin: 15px 0; font-size: 16px; }
+        .task input[type="checkbox"] { margin-right: 10px; transform: scale(1.5); }
+        .task.completed { text-decoration: line-through; color: #888; }
+        #progress { font-size: 18px; font-weight: bold; margin-top: 20px; }
+        #shareBtn { background: #4CAF50; }
+        #boosterStatus { font-size: 20px; font-weight: bold; margin: 20px; color: green; display: none; }
     </style>
 </head>
 <body>
-
     <h1>Pi Task & Booster</h1>
-    <p class="subtitle">Selesaikan tugas harian untuk booster mining</p>
-    
-    <div id="status">Menginisialisasi Pi SDK...</div>
-    <div id="timer">00:00:00</div>
+    <div id="status">Menghubungkan ke Pi...</div>
+    <div id="timer">Sesi Aktif Berikutnya: 24:00:00</div>
 
     <div class="tasks-container">
-        <div id="progress-text">Progres: 0/5 Tugas Selesai</div>
-        <div id="progress-bar-container"><div id="progress-fill"></div></div>
-
+        <h2>Tugas Harian Pi</h2>
         <div class="task" id="task-lightning">
             <input type="checkbox" id="check-lightning">
-            <label for="check-lightning">Tekan Tombol Lightning di App Pi</label>
+            <label for="check-lightning">Tekan Tombol Lightning (Mulai Mining 24 Jam)</label>
         </div>
         <div class="task" id="task-security">
             <input type="checkbox" id="check-security">
-            <label for="check-security">Update Security Circle</label>
+            <label for="check-security">Cek & Lengkapi Security Circle (+100% Bonus)</label>
         </div>
         <div class="task" id="task-kyc">
             <input type="checkbox" id="check-kyc">
-            <label for="check-kyc">Cek Checklist Mainnet</label>
+            <label for="check-kyc">Reminder: Selesaikan KYC & Mainnet Checklist</label>
         </div>
         <div class="task" id="task-browser">
             <input type="checkbox" id="check-browser">
-            <label for="check-browser">Eksplorasi Ekosistem Pi</label>
+            <label for="check-browser">Gunakan Pi Browser / App Pi Harian</label>
         </div>
         <div class="task" id="task-referral">
             <input type="checkbox" id="check-referral">
-            <label for="check-referral">Bagikan Kode Referral</label>
+            <label for="check-referral">Bagikan Kode Referral / Undang Teman Baru (+25% Bonus per Anggota)</label>
         </div>
-
-        <button id="shareBtn">BAGIKAN KODE REFERRAL</button>
-        <button id="boosterBtn" disabled>AKTIFKAN BOOSTER (1 Pi)</button>
+        <div id="progress">Progres: 0/5 Tugas Selesai</div>
     </div>
 
-    <script>
-        // Konfigurasi awal
-        const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: false }); // Ubah ke true jika testing di Sandbox
+    <button id="shareBtn" style="display:none;">Bagikan Kode Referral Anda</button>
+    <div id="boosterStatus">Booster Aktif! Bonus Mining +50% untuk 24 Jam</div>
+    <p>Gunakan Pi Browser untuk pengalaman penuh dan autentikasi Pi SDK.</p>
 
+    <script>
         let authData = null;
-        const taskIds = ['lightning', 'security', 'kyc', 'browser', 'referral'];
+        const tasks = ['lightning', 'security', 'kyc', 'browser', 'referral'];
         const today = new Date().toDateString();
 
-        // 1. Logika Timer yang tersimpan (Persistence)
-        function updateTimer() {
-            let endTime = localStorage.getItem('timerEnd');
-            if (!endTime) {
-                // Set 24 jam dari sekarang jika belum ada
-                endTime = Date.now() + (24 * 60 * 60 * 1000);
-                localStorage.setItem('timerEnd', endTime);
-            }
-
-            const now = Date.now();
-            const diff = endTime - now;
-
-            if (diff <= 0) {
-                document.getElementById("timer").innerText = "Sesi Berakhir!";
-                // Opsional: reset tugas jika waktu habis
-                return;
-            }
-
-            const h = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            document.getElementById("timer").innerText = `${h}:${m}:${s}`;
-        }
-        setInterval(updateTimer, 1000);
-
-        // 2. Logika Tugas
+        // Muat status tugas dari localStorage (reset harian)
         function loadTasks() {
             const savedDay = localStorage.getItem('taskDay');
             if (savedDay !== today) {
-                taskIds.forEach(id => localStorage.removeItem(`task-${id}`));
+                localStorage.clear();
                 localStorage.setItem('taskDay', today);
             }
-
-            let completedCount = 0;
-            taskIds.forEach(id => {
-                const isChecked = localStorage.getItem(`task-${id}`) === 'true';
-                const el = document.getElementById(`check-${id}`);
-                el.checked = isChecked;
-                if (isChecked) {
-                    document.getElementById(`task-${id}`).classList.add('completed');
-                    completedCount++;
+            let completed = 0;
+            tasks.forEach(task => {
+                const checked = localStorage.getItem(`task-${task}`) === 'true';
+                document.getElementById(`check-${task}`).checked = checked;
+                if (checked) {
+                    document.getElementById(`task-${task}`).classList.add('completed');
+                    completed++;
                 }
             });
-            updateUI(completedCount);
+            updateProgress(completed);
+            checkBoosterActivation();
         }
 
-        function updateUI(count) {
-            const percent = (count / taskIds.length) * 100;
-            document.getElementById('progress-fill').style.width = `${percent}%`;
-            document.getElementById('progress-text').innerText = `Progres: ${count}/${taskIds.length} Tugas Selesai`;
-            
-            // Tombol booster hanya aktif jika semua tugas selesai DAN sudah login
-            document.getElementById("boosterBtn").disabled = !(authData && count === taskIds.length);
+        // Update progres dan cek aktivasi booster
+        function updateProgress(completed) {
+            document.getElementById('progress').innerText = `Progres: \( {completed}/ \){tasks.length} Tugas Selesai`;
+            checkBoosterActivation();
         }
 
-        // Event listener untuk checkbox
-        taskIds.forEach(id => {
-            document.getElementById(`check-${id}`).addEventListener('change', function() {
-                localStorage.setItem(`task-${id}`, this.checked);
-                document.getElementById(`task-${id}`).classList.toggle('completed', this.checked);
-                const currentCompleted = taskIds.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
-                updateUI(currentCompleted);
+        function checkBoosterActivation() {
+            const completed = tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
+            if (authData && completed === tasks.length) {
+                document.getElementById('boosterStatus').style.display = 'block';
+            } else {
+                document.getElementById('boosterStatus').style.display = 'none';
+            }
+        }
+
+        // Event checkbox
+        tasks.forEach(task => {
+            document.getElementById(`check-${task}`).addEventListener('change', function() {
+                localStorage.setItem(`task-${task}`, this.checked);
+                document.getElementById(`task-${task}`).classList.toggle('completed', this.checked);
+                const completed = tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
+                updateProgress(completed);
             });
         });
 
-        // 3. Autentikasi Pi
+        // Fungsi penanganan pembayaran tidak lengkap (tidak digunakan lagi)
+        function onIncompletePaymentFound(payment) {
+            console.log("Pembayaran tidak lengkap:", payment);
+        }
+
+        // Autentikasi Pi SDK
         window.onload = function() {
             loadTasks();
-            
-            const scopes = ["username", "payments", "wallet_address"];
-            
-            Pi.authenticate(scopes, (payment) => {
-                console.log("Incomplete payment found", payment);
-            }).then(function(auth) {
-                authData = auth;
-                document.getElementById("status").innerText = `Halo, ${auth.user.username}! ✨`;
-                document.getElementById("status").style.color = "#4CAF50";
-                
-                // Cek ulang progres setelah login
-                const currentCompleted = taskIds.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
-                updateUI(currentCompleted);
-            }).catch(function(error) {
-                document.getElementById("status").innerText = "Gagal Login. Buka di Pi Browser!";
-                document.getElementById("status").style.color = "#f44336";
-                console.error(error);
-            });
+            const scopes = ["username"];  // Hanya username, tanpa payments
+            Pi.authenticate(scopes, onIncompletePaymentFound)
+                .then(function(auth) {
+                    authData = auth;
+                    document.getElementById("status").innerText = 
+                        `Selamat datang, ${auth.user.username}! Siap untuk tugas harian.`;
+                    document.getElementById("shareBtn").style.display = "block";
+                    checkBoosterActivation();
+                })
+                .catch(function(error) {
+                    document.getElementById("status").innerText = 
+                        "Autentikasi gagal. Gunakan Pi Browser untuk fitur lengkap.";
+                    console.error(error);
+                });
         };
 
-        // 4. Fitur Share
+        // Event Bagikan Kode Referral
         document.getElementById("shareBtn").addEventListener("click", function() {
-            const username = authData ? authData.user.username : "Pioneer";
-            const msg = `Ayo selesaikan tugas harian di Pi Network! Gunakan kode saya: ${username}`;
-            
+            if (!authData) {
+                alert("Autentikasi Pi diperlukan untuk membagikan referral.");
+                return;
+            }
+            const referralMessage = `Bergabunglah dengan Pi Network menggunakan kode undangan saya: ${authData.user.username}\nDownload app Pi di https://minepi.com/ dan mulai mining Pi gratis!`;
             Pi.shareContent({
-                title: "Pi Task Booster",
-                message: msg,
-            }).then(() => {
-                // Tandai tugas referral selesai otomatis
-                const checkRef = document.getElementById("check-referral");
-                if(!checkRef.checked) {
-                    checkRef.checked = true;
-                    checkRef.dispatchEvent(new Event('change'));
-                }
+                title: "Undangan Pi Network",
+                message: referralMessage
+            }).catch(function(error) {
+                alert("Gagal membagikan. Salin manual: " + referralMessage);
+                console.error(error);
             });
+            // Otomatis centang tugas referral
+            document.getElementById("check-referral").checked = true;
+            localStorage.setItem("task-referral", "true");
+            document.getElementById("task-referral").classList.add("completed");
+            updateProgress(tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length);
         });
 
-        // 5. Pembayaran Booster (Contoh Mainnet)
-        document.getElementById("boosterBtn").addEventListener("click", function() {
-            const paymentData = {
-                amount: 1.0,
-                memo: "Daily Booster Activation",
-                metadata: { type: "booster_pack" }
-            };
-
-            const callbacks = {
-                onReadyForServerApproval: (paymentId) => {
-                    console.log("Menunggu persetujuan server: ", paymentId);
-                    // Di sini Anda harus mengirim paymentId ke backend Anda
-                },
-                onReadyForServerCompletion: (paymentId, txid) => {
-                    alert("Pembayaran Sukses! TXID: " + txid);
-                },
-                onCancel: (paymentId) => { console.log("Dibatalkan"); },
-                onError: (error, payment) => { console.error("Error", error); }
-            };
-
-            Pi.createPayment(paymentData, callbacks);
-        });
+        // Timer countdown sederhana 24 jam
+        let timeLeft = 24 * 60 * 60;
+        setInterval(function() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                const hours = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+                const minutes = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                document.getElementById("timer").innerText = 
+                    `Sesi Aktif Berikutnya: \( {hours}: \){minutes}:${seconds}`;
+            }
+        }, 1000);
     </script>
 </body>
 </html>
