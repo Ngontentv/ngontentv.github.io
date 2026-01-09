@@ -3,169 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi Task & Booster</title>
-    <!-- Integrasi Pi SDK -->
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script>
-        Pi.init({ version: "2.0" });
-    </script>
+    <title>Demo Pi Network App - Autentikasi Pioneer</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; color: #333; margin: 0; padding: 20px; }
-        h1 { color: #6a0dad; }
-        #status { font-size: 18px; margin: 20px; }
-        #timer { font-size: 36px; font-weight: bold; margin: 30px; color: #6a0dad; }
-        button { padding: 15px 30px; font-size: 18px; background: #6a0dad; color: white; border: none; cursor: pointer; margin: 10px; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .tasks-container { max-width: 600px; margin: 20px auto; text-align: left; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .task { display: flex; align-items: center; margin: 15px 0; font-size: 16px; }
-        .task input[type="checkbox"] { margin-right: 10px; transform: scale(1.5); }
-        .task.completed { text-decoration: line-through; color: #888; }
-        #progress { font-size: 18px; font-weight: bold; margin-top: 20px; }
-        #shareBtn { background: #4CAF50; }
-        #boosterStatus { font-size: 20px; font-weight: bold; margin: 20px; color: green; display: none; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #6a0dad; /* Warna ungu khas Pi Network */
+        }
+        button {
+            background-color: #6a0dad;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #552a99;
+        }
+        .profile {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f0e6ff;
+            border-radius: 8px;
+            display: none;
+        }
+        .error {
+            color: #d32f2f;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Pi Task & Booster</h1>
-    <div id="status">Menghubungkan ke Pi...</div>
-    <div id="timer">Sesi Aktif Berikutnya: 24:00:00</div>
-
-    <div class="tasks-container">
-        <h2>Tugas Harian Pi</h2>
-        <div class="task" id="task-lightning">
-            <input type="checkbox" id="check-lightning">
-            <label for="check-lightning">Tekan Tombol Lightning (Mulai Mining 24 Jam)</label>
+    <div class="container">
+        <h1>Selamat Datang di Demo Pi Network App</h1>
+        <p>Aplikasi ini mendemonstrasikan autentikasi pengguna Pi Network menggunakan Pi SDK resmi.</p>
+        <p>Pastikan Anda mengakses melalui <strong>Pi Browser</strong> untuk pengalaman optimal.</p>
+        <button id="loginBtn">Login dengan Pi Network</button>
+        
+        <div id="profile" class="profile">
+            <h2>Profil Pioneer Anda</h2>
+            <p><strong>Username:</strong> <span id="username"></span></p>
+            <p><strong>UID:</strong> <span id="uid"></span></p>
+            <p><strong>Access Token:</strong> <span id="token">(Disembunyikan untuk keamanan)</span></p>
+            <button id="logoutBtn">Logout</button>
         </div>
-        <div class="task" id="task-security">
-            <input type="checkbox" id="check-security">
-            <label for="check-security">Cek & Lengkapi Security Circle (+100% Bonus)</label>
-        </div>
-        <div class="task" id="task-kyc">
-            <input type="checkbox" id="check-kyc">
-            <label for="check-kyc">Reminder: Selesaikan KYC & Mainnet Checklist</label>
-        </div>
-        <div class="task" id="task-browser">
-            <input type="checkbox" id="check-browser">
-            <label for="check-browser">Gunakan Pi Browser / App Pi Harian</label>
-        </div>
-        <div class="task" id="task-referral">
-            <input type="checkbox" id="check-referral">
-            <label for="check-referral">Bagikan Kode Referral / Undang Teman Baru (+25% Bonus per Anggota)</label>
-        </div>
-        <div id="progress">Progres: 0/5 Tugas Selesai</div>
+        
+        <p id="error" class="error"></p>
     </div>
 
-    <button id="shareBtn" style="display:none;">Bagikan Kode Referral Anda</button>
-    <div id="boosterStatus">Booster Aktif! Bonus Mining +50% untuk 24 Jam</div>
-    <p>Gunakan Pi Browser untuk pengalaman penuh dan autentikasi Pi SDK.</p>
-
+    <!-- Integrasi Pi SDK Resmi -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <script>
-        let authData = null;
-        const tasks = ['lightning', 'security', 'kyc', 'browser', 'referral'];
-        const today = new Date().toDateString();
+        // Inisialisasi Pi SDK
+        Pi.init({ version: "2.0" }); // Versi terbaru per Januari 2026
 
-        // Muat status tugas dari localStorage (reset harian)
-        function loadTasks() {
-            const savedDay = localStorage.getItem('taskDay');
-            if (savedDay !== today) {
-                localStorage.clear();
-                localStorage.setItem('taskDay', today);
-            }
-            let completed = 0;
-            tasks.forEach(task => {
-                const checked = localStorage.getItem(`task-${task}`) === 'true';
-                document.getElementById(`check-${task}`).checked = checked;
-                if (checked) {
-                    document.getElementById(`task-${task}`).classList.add('completed');
-                    completed++;
-                }
-            });
-            updateProgress(completed);
-            checkBoosterActivation();
-        }
+        const loginBtn = document.getElementById('loginBtn');
+        const profileDiv = document.getElementById('profile');
+        const usernameSpan = document.getElementById('username');
+        const uidSpan = document.getElementById('uid');
+        const errorP = document.getElementById('error');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        // Update progres dan cek aktivasi booster
-        function updateProgress(completed) {
-            document.getElementById('progress').innerText = `Progres: \( {completed}/ \){tasks.length} Tugas Selesai`;
-            checkBoosterActivation();
-        }
+        // Fungsi autentikasi
+        async function authenticatePi() {
+            try {
+                errorP.textContent = '';
+                const scopes = ['username']; // Meminta akses username
+                const onIncompletePaymentFound = (payment) => {
+                    console.log('Pembayaran tidak lengkap ditemukan:', payment);
+                    // Kirim ke backend untuk penanganan jika diperlukan
+                };
 
-        function checkBoosterActivation() {
-            const completed = tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
-            if (authData && completed === tasks.length) {
-                document.getElementById('boosterStatus').style.display = 'block';
-            } else {
-                document.getElementById('boosterStatus').style.display = 'none';
+                const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                
+                // Tampilkan profil
+                usernameSpan.textContent = authResult.user.username || 'Tidak tersedia';
+                uidSpan.textContent = authResult.user.uid;
+                profileDiv.style.display = 'block';
+                loginBtn.style.display = 'none';
+
+                console.log('Autentikasi sukses:', authResult);
+                // Catatan keamanan: Verifikasi accessToken di backend menggunakan API /v2/me
+            } catch (err) {
+                errorP.textContent = 'Gagal autentikasi: ' + (err.message || 'Silakan coba lagi di Pi Browser.');
+                console.error(err);
             }
         }
 
-        // Event checkbox
-        tasks.forEach(task => {
-            document.getElementById(`check-${task}`).addEventListener('change', function() {
-                localStorage.setItem(`task-${task}`, this.checked);
-                document.getElementById(`task-${task}`).classList.toggle('completed', this.checked);
-                const completed = tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
-                updateProgress(completed);
-            });
+        // Event listener
+        loginBtn.addEventListener('click', authenticatePi);
+        logoutBtn.addEventListener('click', () => {
+            profileDiv.style.display = 'none';
+            loginBtn.style.display = 'block';
+            errorP.textContent = '';
         });
-
-        // Fungsi penanganan pembayaran tidak lengkap (tidak digunakan lagi)
-        function onIncompletePaymentFound(payment) {
-            console.log("Pembayaran tidak lengkap:", payment);
-        }
-
-        // Autentikasi Pi SDK
-        window.onload = function() {
-            loadTasks();
-            const scopes = ["username"];  // Hanya username, tanpa payments
-            Pi.authenticate(scopes, onIncompletePaymentFound)
-                .then(function(auth) {
-                    authData = auth;
-                    document.getElementById("status").innerText = 
-                        `Selamat datang, ${auth.user.username}! Siap untuk tugas harian.`;
-                    document.getElementById("shareBtn").style.display = "block";
-                    checkBoosterActivation();
-                })
-                .catch(function(error) {
-                    document.getElementById("status").innerText = 
-                        "Autentikasi gagal. Gunakan Pi Browser untuk fitur lengkap.";
-                    console.error(error);
-                });
-        };
-
-        // Event Bagikan Kode Referral
-        document.getElementById("shareBtn").addEventListener("click", function() {
-            if (!authData) {
-                alert("Autentikasi Pi diperlukan untuk membagikan referral.");
-                return;
-            }
-            const referralMessage = `Bergabunglah dengan Pi Network menggunakan kode undangan saya: ${authData.user.username}\nDownload app Pi di https://minepi.com/ dan mulai mining Pi gratis!`;
-            Pi.shareContent({
-                title: "Undangan Pi Network",
-                message: referralMessage
-            }).catch(function(error) {
-                alert("Gagal membagikan. Salin manual: " + referralMessage);
-                console.error(error);
-            });
-            // Otomatis centang tugas referral
-            document.getElementById("check-referral").checked = true;
-            localStorage.setItem("task-referral", "true");
-            document.getElementById("task-referral").classList.add("completed");
-            updateProgress(tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length);
-        });
-
-        // Timer countdown sederhana 24 jam
-        let timeLeft = 24 * 60 * 60;
-        setInterval(function() {
-            if (timeLeft > 0) {
-                timeLeft--;
-                const hours = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
-                const minutes = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
-                const seconds = (timeLeft % 60).toString().padStart(2, '0');
-                document.getElementById("timer").innerText = 
-                    `Sesi Aktif Berikutnya: \( {hours}: \){minutes}:${seconds}`;
-            }
-        }, 1000);
     </script>
 </body>
 </html>
