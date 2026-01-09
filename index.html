@@ -1,110 +1,171 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pasar Pi Indonesia</title>
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-  <script>
-    Pi.init({ version: "2.0" });  // Ganti dengan { version: "2.0", sandbox: true } untuk pengujian
-  </script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
-    h1 { text-align: center; color: #333; }
-    .product { border: 1px solid #ddd; padding: 10px; margin: 10px; background: white; border-radius: 8px; }
-    .product img { max-width: 100%; height: auto; }
-    button { background: #007bff; color: white; padding: 10px; border: none; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    #user-info { text-align: center; margin: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saling Subscribe YouTube + Token Reward (Pi Network)</title>
+    <!-- Integrasi Pi Network SDK -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script>
+        Pi.init({ version: "2.0" }); // Gunakan sandbox: true saat pengujian
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+        header { background: #ff0000; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; }
+        input, button { padding: 10px; margin: 10px 0; width: 100%; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .task-list { margin-top: 20px; }
+        .task { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        iframe { width: 100%; height: 300px; border: none; }
+        #balance { font-weight: bold; color: #28a745; font-size: 1.2em; }
+        #user-info { margin: 15px 0; font-weight: bold; }
+    </style>
 </head>
 <body>
-  <h1>Pasar Pi Indonesia</h1>
-  <p>Selamat datang di marketplace komunitas Pioneers Indonesia. Belanja produk lokal dengan Pi!</p>
-  
-  <div id="user-info"></div>
-  <button onclick="authenticateUser()">Login dengan Pi</button>
+    <header>
+        <h1>Platform Saling Subscribe YouTube</h1>
+        <p>Login dengan Pi Network untuk mendapatkan token reward dengan subscribe & nonton video!</p>
+    </header>
 
-  <div id="products">
-    <!-- Daftar Produk Statis (bisa diganti dengan data dinamis dari backend) -->
-    <div class="product">
-      <h3>Batik Parang</h3>
-      <p>Harga: 10 Pi</p>
-      <img src="https://example.com/batik.jpg" alt="Batik Parang"> <!-- Ganti dengan URL gambar asli -->
-      <button onclick="buyProduct('Batik Parang', 10)">Beli dengan Pi</button>
+    <div class="container">
+        <div id="login-section">
+            <button id="login-btn">Login dengan Pi Network</button>
+        </div>
+
+        <div id="main-section" style="display: none;">
+            <div id="user-info">Selamat datang, <span id="username"></span>!</div>
+            <p>UID: <span id="uid"></span></p>
+            <h2>Saldo Token Anda: <span id="balance">0</span></h2>
+
+            <h2>Daftarkan Channel Anda</h2>
+            <input type="text" id="channel-url" placeholder="URL Channel YouTube (https://youtube.com/@username)">
+            <input type="text" id="video-url" placeholder="URL Video untuk Ditonton Orang Lain">
+            <button onclick="addMyChannel()">Daftar Channel & Mulai</button>
+
+            <h2>Tugas Tersedia (Subscribe + Nonton 60 detik = +10 Token)</h2>
+            <div class="task-list" id="tasks"></div>
+        </div>
     </div>
-    <div class="product">
-      <h3>Rendang Padang</h3>
-      <p>Harga: 5 Pi</p>
-      <img src="https://example.com/rendang.jpg" alt="Rendang"> <!-- Ganti dengan URL gambar asli -->
-      <button onclick="buyProduct('Rendang Padang', 5)">Beli dengan Pi</button>
-    </div>
-    <div class="product">
-      <h3>Kerajinan Anyaman</h3>
-      <p>Harga: 8 Pi</p>
-      <img src="https://example.com/anyaman.jpg" alt="Anyaman"> <!-- Ganti dengan URL gambar asli -->
-      <button onclick="buyProduct('Kerajinan Anyaman', 8)">Beli dengan Pi</button>
-    </div>
-  </div>
 
-  <script>
-    let userUid = null;
+    <script>
+        let authData = null;
+        let tasks = [];
+        let myBalance = 0;
+        let myChannel = null;
 
-    function authenticateUser() {
-      const scopes = ['username', 'payments'];
+        // Autentikasi Pi Network
+        async function authenticatePi() {
+            const scopes = ['username'];
+            try {
+                authData = await Pi.authenticate(scopes);
+                document.getElementById('username').innerText = authData.user.username;
+                document.getElementById('uid').innerText = authData.user.uid;
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('main-section').style.display = 'block';
 
-      function onIncompletePaymentFound(payment) {
-        console.log('Pembayaran tidak lengkap ditemukan:', payment);
-        // Kirim ke backend untuk handling (cancel/complete)
-      }
-
-      Pi.authenticate(scopes, onIncompletePaymentFound)
-        .then((auth) => {
-          document.getElementById('user-info').innerHTML = `<p>Halo, ${auth.user.username}! (UID: ${auth.user.uid})</p>`;
-          userUid = auth.user.uid;
-        })
-        .catch((error) => {
-          console.error(error);
-          alert('Autentikasi gagal: ' + error);
-        });
-    }
-
-    function buyProduct(productName, amount) {
-      if (!userUid) {
-        alert('Silakan login terlebih dahulu dengan Pi.');
-        authenticateUser();
-        return;
-      }
-
-      const paymentData = {
-        amount: amount,
-        memo: `Pembelian ${productName} di Pasar Pi Indonesia`,
-        metadata: { product: productName, buyerUid: userUid }
-      };
-
-      const callbacks = {
-        onReadyForServerApproval: function(paymentId) {
-          console.log('Payment ID:', paymentId);
-          // Kirim paymentId ke backend untuk approve via Pi API
-          alert('Pembayaran siap diverifikasi server. Payment ID: ' + paymentId);
-        },
-        onReadyForServerCompletion: function(paymentId, txid) {
-          console.log('Pembayaran selesai. TXID:', txid);
-          // Kirim ke backend untuk complete
-          alert('Pembayaran berhasil! Terima kasih telah berbelanja.');
-        },
-        onCancel: function(paymentId) {
-          console.log('Pembayaran dibatalkan:', paymentId);
-          alert('Pembayaran dibatalkan.');
-        },
-        onError: function(error, payment) {
-          console.error(error);
-          alert('Error: ' + error.message);
+                // Muat data pengguna berdasarkan UID
+                loadUserData(authData.user.uid);
+                loadTasks();
+            } catch (err) {
+                console.error('Login gagal:', err);
+                alert('Login Pi Network gagal. Coba lagi.');
+            }
         }
-      };
 
-      Pi.createPayment(paymentData, callbacks);
-    }
-  </script>
+        // Simpan/muat data menggunakan localStorage dengan prefix UID
+        function getStorageKey(key) {
+            return `pi_\( {authData.user.uid}_ \){key}`;
+        }
+
+        function loadUserData(uid) {
+            myBalance = parseInt(localStorage.getItem(getStorageKey('balance'))) || 0;
+            myChannel = JSON.parse(localStorage.getItem(getStorageKey('myChannel')));
+            tasks = JSON.parse(localStorage.getItem('global_tasks')) || [];
+            document.getElementById('balance').innerText = myBalance;
+        }
+
+        function saveUserData() {
+            localStorage.setItem(getStorageKey('balance'), myBalance);
+            if (myChannel) localStorage.setItem(getStorageKey('myChannel'), JSON.stringify(myChannel));
+        }
+
+        function addMyChannel() {
+            if (!authData) return alert('Harap login terlebih dahulu.');
+
+            const channelUrl = document.getElementById('channel-url').value.trim();
+            const videoUrl = document.getElementById('video-url').value.trim();
+            if (!channelUrl || !videoUrl) return alert('Isi kedua URL dengan benar!');
+
+            const videoId = extractVideoId(videoUrl);
+            if (!videoId) return alert('URL video YouTube tidak valid.');
+
+            myChannel = { channelUrl, videoUrl, videoId, ownerUid: authData.user.uid };
+            saveUserData();
+
+            // Tambahkan ke daftar tugas global (semua pengguna bisa melihat)
+            if (!tasks.find(t => t.ownerUid === authData.user.uid)) {
+                tasks.push(myChannel);
+                localStorage.setItem('global_tasks', JSON.stringify(tasks));
+            }
+
+            alert('Channel berhasil didaftarkan!');
+            loadTasks();
+        }
+
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function loadTasks() {
+            const taskList = document.getElementById('tasks');
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                // Jangan tampilkan tugas milik sendiri
+                if (task.ownerUid === authData.user.uid) return;
+
+                const div = document.createElement('div');
+                div.className = 'task';
+                div.innerHTML = `
+                    <p><strong>Channel:</strong> <a href="\( {task.channelUrl}" target="_blank"> \){task.channelUrl}</a></p>
+                    <p>Nonton minimal 60 detik & subscribe untuk +10 Token</p>
+                    <iframe src="https://www.youtube.com/embed/${task.videoId}?rel=0" allowfullscreen></iframe>
+                    <button id="complete-btn-${index}" disabled>Sedang Nonton... (0/60 detik)</button>
+                    <p id="timer-${index}">0 detik</p>
+                `;
+                taskList.appendChild(div);
+
+                let seconds = 0;
+                const timerInterval = setInterval(() => {
+                    seconds++;
+                    document.getElementById(`timer-\( {index}`).innerText = ` \){seconds} detik`;
+                    if (seconds >= 60) {
+                        document.getElementById(`complete-btn-${index}`).disabled = false;
+                        document.getElementById(`complete-btn-${index}`).innerText = 'Klaim +10 Token';
+                        clearInterval(timerInterval);
+                    }
+                }, 1000);
+
+                document.getElementById(`complete-btn-${index}`).onclick = () => completeTask(index);
+            });
+        }
+
+        function completeTask(index) {
+            myBalance += 10;
+            saveUserData();
+            document.getElementById('balance').innerText = myBalance;
+            alert(`Selamat! +10 Token. Saldo sekarang: ${myBalance}`);
+            loadTasks(); // Refresh tugas
+        }
+
+        // Event login
+        document.getElementById('login-btn').addEventListener('click', authenticatePi);
+
+        // Jika sudah pernah login di sesi sebelumnya (opsional auto-login)
+        // Pi.authenticate([...]).then(...).catch(() => {});
+    </script>
 </body>
 </html>
