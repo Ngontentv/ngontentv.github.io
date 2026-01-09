@@ -10,99 +10,177 @@
         Pi.init({ version: "2.0" });
     </script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; color: #333; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; color: #333; margin: 0; padding: 20px; }
         h1 { color: #6a0dad; }
         #status { font-size: 18px; margin: 20px; }
-        #timer { font-size: 36px; font-weight: bold; margin: 30px; }
-        button { padding: 15px 30px; font-size: 18px; background: #6a0dad; color: white; border: none; cursor: pointer; }
+        #timer { font-size: 36px; font-weight: bold; margin: 30px; color: #6a0dad; }
+        button { padding: 15px 30px; font-size: 18px; background: #6a0dad; color: white; border: none; cursor: pointer; margin: 10px; }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        .task { margin: 20px; font-size: 16px; }
+        .tasks-container { max-width: 600px; margin: 20px auto; text-align: left; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .task { display: flex; align-items: center; margin: 15px 0; font-size: 16px; }
+        .task input[type="checkbox"] { margin-right: 10px; transform: scale(1.5); }
+        .task.completed { text-decoration: line-through; color: #888; }
+        #progress { font-size: 18px; font-weight: bold; margin-top: 20px; }
+        #shareBtn { background: #4CAF50; }
     </style>
 </head>
 <body>
     <h1>Pi Task & Booster</h1>
     <div id="status">Menghubungkan ke Pi...</div>
     <div id="timer">Sesi Aktif Berikutnya: 24:00:00</div>
+
+    <div class="tasks-container">
+        <h2>Tugas Harian Pi</h2>
+        <div class="task" id="task-lightning">
+            <input type="checkbox" id="check-lightning">
+            <label for="check-lightning">Tekan Tombol Lightning (Mulai Mining 24 Jam)</label>
+        </div>
+        <div class="task" id="task-security">
+            <input type="checkbox" id="check-security">
+            <label for="check-security">Cek & Lengkapi Security Circle (+100% Bonus)</label>
+        </div>
+        <div class="task" id="task-kyc">
+            <input type="checkbox" id="check-kyc">
+            <label for="check-kyc">Reminder: Selesaikan KYC & Mainnet Checklist</label>
+        </div>
+        <div class="task" id="task-browser">
+            <input type="checkbox" id="check-browser">
+            <label for="check-browser">Gunakan Pi Browser / App Pi Harian</label>
+        </div>
+        <div class="task" id="task-referral">
+            <input type="checkbox" id="check-referral">
+            <label for="check-referral">Bagikan Kode Referral / Undang Teman Baru (+25% Bonus per Anggota)</label>
+        </div>
+        <div id="progress">Progres: 0/5 Tugas Selesai</div>
+    </div>
+
+    <button id="shareBtn" style="display:none;">Bagikan Kode Referral Anda</button>
     <button id="boosterBtn" disabled>AKTIFKAN BOOSTER</button>
-    <div class="task">Cek Security Circle +25%</div>
-    <div class="task">Verifikasi Email Selesai</div>
-    <p>Gunakan Pi Browser untuk pengalaman penuh.</p>
+    <p>Gunakan Pi Browser untuk pengalaman penuh dan autentikasi Pi SDK.</p>
 
     <script>
         let authData = null;
+        const tasks = ['lightning', 'security', 'kyc', 'browser', 'referral'];
+        const today = new Date().toDateString();
 
-        // Fungsi penanganan pembayaran tidak lengkap (opsional)
-        function onIncompletePaymentFound(payment) {
-            console.log("Pembayaran tidak lengkap ditemukan:", payment);
-            // Handle jika ada pembayaran pending (misalnya: complete atau cancel)
+        // Muat status tugas dari localStorage (reset harian)
+        function loadTasks() {
+            const savedDay = localStorage.getItem('taskDay');
+            if (savedDay !== today) {
+                localStorage.clear();
+                localStorage.setItem('taskDay', today);
+            }
+            let completed = 0;
+            tasks.forEach(task => {
+                const checked = localStorage.getItem(`task-${task}`) === 'true';
+                document.getElementById(`check-${task}`).checked = checked;
+                if (checked) {
+                    document.getElementById(`task-${task}`).classList.add('completed');
+                    completed++;
+                }
+            });
+            updateProgress(completed);
         }
 
-        // Autentikasi saat halaman loaded
-        window.onload = function() {
-            const scopes = ["username", "payments"];
+        // Update progres dan tombol booster
+        function updateProgress(completed) {
+            document.getElementById('progress').innerText = `Progres: \( {completed}/ \){tasks.length} Tugas Selesai`;
+            if (authData && completed === tasks.length) {
+                document.getElementById("boosterBtn").disabled = false;
+            }
+        }
 
+        // Event checkbox
+        tasks.forEach(task => {
+            document.getElementById(`check-${task}`).addEventListener('change', function() {
+                localStorage.setItem(`task-${task}`, this.checked);
+                document.getElementById(`task-${task}`).classList.toggle('completed', this.checked);
+                const completed = tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length;
+                updateProgress(completed);
+            });
+        });
+
+        // Fungsi penanganan pembayaran tidak lengkap
+        function onIncompletePaymentFound(payment) {
+            console.log("Pembayaran tidak lengkap:", payment);
+        }
+
+        // Autentikasi Pi SDK
+        window.onload = function() {
+            loadTasks();
+            const scopes = ["username", "payments"];
             Pi.authenticate(scopes, onIncompletePaymentFound)
                 .then(function(auth) {
                     authData = auth;
                     document.getElementById("status").innerText = 
-                        `Selamat datang, ${auth.user.username}! Autentikasi berhasil.`;
-                    document.getElementById("boosterBtn").disabled = false;
-                    console.log("UID:", auth.user.uid);
-                    console.log("Access Token:", auth.accessToken);
+                        `Selamat datang, ${auth.user.username}! Siap untuk tugas harian.`;
+                    document.getElementById("shareBtn").style.display = "block";
+
+                    if (tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length === tasks.length) {
+                        document.getElementById("boosterBtn").disabled = false;
+                    }
                 })
                 .catch(function(error) {
                     document.getElementById("status").innerText = 
-                        "Autentikasi gagal atau dibatalkan. Coba lagi di Pi Browser.";
+                        "Autentikasi gagal. Gunakan Pi Browser untuk fitur lengkap.";
                     console.error(error);
                 });
         };
 
-        // Event tombol Aktifkan Booster (contoh pembayaran 1 Pi)
-        document.getElementById("boosterBtn").addEventListener("click", function() {
+        // Event Bagikan Kode Referral
+        document.getElementById("shareBtn").addEventListener("click", function() {
             if (!authData) {
-                alert("Harap autentikasi terlebih dahulu.");
+                alert("Autentikasi Pi diperlukan untuk membagikan referral.");
                 return;
             }
+            const referralMessage = `Bergabunglah dengan Pi Network menggunakan kode undangan saya: ${authData.user.username}\nDownload app Pi di https://minepi.com/ dan mulai mining Pi gratis!`;
+            Pi.shareContent({
+                title: "Undangan Pi Network",
+                message: referralMessage
+            }).catch(function(error) {
+                alert("Gagal membagikan. Salin manual: " + referralMessage);
+                console.error(error);
+            });
+            // Otomatis centang tugas referral setelah dibagikan
+            document.getElementById("check-referral").checked = true;
+            localStorage.setItem("task-referral", "true");
+            document.getElementById("task-referral").classList.add("completed");
+            updateProgress(tasks.filter(t => localStorage.getItem(`task-${t}`) === 'true').length);
+        });
 
+        // Event Aktifkan Booster (contoh pembayaran 1 Pi)
+        document.getElementById("boosterBtn").addEventListener("click", function() {
+            if (!authData) {
+                alert("Autentikasi Pi diperlukan.");
+                return;
+            }
             const paymentData = {
-                amount: 1.0,  // Jumlah Pi untuk booster
-                memo: "Aktifkan Booster Harian - Pi Task & Booster",
-                metadata: { app: "timbooster", action: "activate_booster" }
+                amount: 1.0,
+                memo: "Aktifkan Booster setelah Tugas Harian - Pi Task & Booster",
+                metadata: { app: "timbooster", action: "daily_booster" }
             };
-
             const callbacks = {
-                onReadyForServerApproval(paymentId) {
-                    console.log("Payment ID:", paymentId);
-                    // Kirim paymentId ke server backend Anda untuk approve (jika ada backend)
-                },
+                onReadyForServerApproval(paymentId) { console.log("Payment ID:", paymentId); },
                 onReadyForServerCompletion(paymentId, txid) {
-                    console.log("Pembayaran selesai. TXID:", txid);
+                    console.log("Sukses! TXID:", txid);
                     alert("Booster berhasil diaktifkan!");
-                    // Update UI atau timer di sini
                 },
-                onCancel(paymentId) {
-                    console.log("Pembayaran dibatalkan.");
-                    alert("Pembayaran dibatalkan.");
-                },
-                onError(error, payment) {
-                    console.error("Error pembayaran:", error);
-                    alert("Error: " + error.message);
-                }
+                onCancel(paymentId) { alert("Pembayaran dibatalkan."); },
+                onError(error) { alert("Error: " + error.message); }
             };
-
             Pi.createPayment(paymentData, callbacks);
         });
 
-        // Contoh timer sederhana (hitung mundur 24 jam)
+        // Timer countdown sederhana 24 jam
         let timeLeft = 24 * 60 * 60;
         setInterval(function() {
             if (timeLeft > 0) {
                 timeLeft--;
-                const hours = Math.floor(timeLeft / 3600);
-                const minutes = Math.floor((timeLeft % 3600) / 60);
-                const seconds = timeLeft % 60;
+                const hours = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+                const minutes = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
                 document.getElementById("timer").innerText = 
-                    `Sesi Aktif Berikutnya: \( {hours.toString().padStart(2, '0')}: \){minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    `Sesi Aktif Berikutnya: \( {hours}: \){minutes}:${seconds}`;
             }
         }, 1000);
     </script>
