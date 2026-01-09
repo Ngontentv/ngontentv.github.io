@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pi Task & Booster</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        :root {
+            --pi-purple: #673ab7;
+            --pi-gold: #ffa000;
+            --bg-black: #0f0f0f;
+            --card-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-black);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--pi-purple), #4527a0);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .container { padding: 20px; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .user-info { font-weight: bold; color: var(--pi-gold); margin-top: 10px; }
+
+        #timer {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--pi-gold);
+            margin: 15px 0;
+        }
+
+        .btn-action {
+            background: var(--pi-gold);
+            color: #000;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-action:disabled { background: #444; color: #888; }
+
+        .task-list {
+            text-align: left;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 30px;
+        }
+        
+        a { color: var(--pi-gold); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0;">Pi Task Booster</h2>
+        <div id="user-display" class="user-info">Menghubungkan ke Pi...</div>
+    </div>
+
+    <div class="container">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 0.8rem; color: #aaa;">Sesi Aktif Berikutnya</div>
+            <div id="timer">24:00:00</div>
+            <button id="boost-btn" class="btn-action" onclick="handleAction()">AKTIFKAN BOOSTER</button>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; color: var(--pi-gold);">Tugas Harian</h3>
+            <div class="task-list">
+                <div class="task-item">
+                    <span>Cek Security Circle</span>
+                    <span style="color: #4caf50;">+25%</span>
+                </div>
+                <div class="task-item">
+                    <span>Verifikasi Email</span>
+                    <span style="color: #4caf50;">Selesai</span>
+                </div>
+                <div class="task-item">
+                    <span>Gunakan Pi Browser</span>
+                    <span style="color: var(--pi-gold);">Proses</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 Pi Task & Booster App<br>
+            <a href="privacy.html">Kebijakan Privasi</a>
+        </div>
+    </div>
+
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0" });
+
+        // Fungsi Autentikasi
+        async function login() {
+            try {
+                const user = await Pi.authenticate(['username'], (payment) => {});
+                document.getElementById('user-display').innerText = "Halo, @" + user.user.username;
+                checkSession();
+            } catch (err) {
+                document.getElementById('user-display').innerText = "Gagal Login. Gunakan Pi Browser!";
+            }
+        }
+
+        // Logika Timer
+        function handleAction() {
+            const nextSession = new Date().getTime() + (24 * 60 * 60 * 1000);
+            localStorage.setItem('pi_session', nextSession);
+            startTimer(nextSession);
+            alert("Booster Aktif! Jangan lupa klik petir di aplikasi utama.");
+        }
+
+        function startTimer(endTime) {
+            const btn = document.getElementById('boost-btn');
+            const display = document.getElementById('timer');
+            btn.disabled = true;
+            btn.innerText = "SEDANG BERJALAN";
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const diff = endTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    display.innerText = "24:00:00";
+                    btn.disabled = false;
+                    btn.innerText = "AKTIFKAN BOOSTER";
+                    return;
+                }
+
+                const h = Math.floor(diff / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                display.innerText = `${h<10?'0':''}${h}:${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+            }, 1000);
+        }
+
+        function checkSession() {
+            const saved = localStorage.getItem('pi_session');
+            if (saved && saved > new Date().getTime()) {
+                startTimer(parseInt(saved));
+            }
+        }
+
+        window.onload = login;
+    </script>
+</body>
+</html>
