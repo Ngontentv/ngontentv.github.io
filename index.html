@@ -1,142 +1,110 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Pi Network App - Autentikasi & Video Tutorial</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7fa;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #6a0dad; /* Warna khas Pi Network */
-        }
-        button {
-            background-color: #6a0dad;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: #552a99;
-        }
-        .profile, .video-section {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #f0e6ff;
-            border-radius: 8px;
-            display: none;
-        }
-        .error {
-            color: #d32f2f;
-            margin-top: 20px;
-        }
-        iframe {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pasar Pi Indonesia</title>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <script>
+    Pi.init({ version: "2.0" });  // Ganti dengan { version: "2.0", sandbox: true } untuk pengujian
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+    h1 { text-align: center; color: #333; }
+    .product { border: 1px solid #ddd; padding: 10px; margin: 10px; background: white; border-radius: 8px; }
+    .product img { max-width: 100%; height: auto; }
+    button { background: #007bff; color: white; padding: 10px; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #user-info { text-align: center; margin: 20px; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Selamat Datang di Demo Pi Network App</h1>
-        <p>Aplikasi ini mendemonstrasikan autentikasi Pioneer menggunakan Pi SDK resmi, serta embed video tutorial untuk pengalaman lebih interaktif.</p>
-        <p>Pastikan Anda mengakses melalui <strong>Pi Browser</strong> resmi untuk fungsi penuh.</p>
-        <button id="loginBtn">Login dengan Pi Network</button>
-        
-        <div id="profile" class="profile">
-            <h2>Profil Pioneer Anda</h2>
-            <p><strong>Username:</strong> <span id="username"></span></p>
-            <p><strong>UID:</strong> <span id="uid"></span></p>
-            <p><strong>Access Token:</strong> <span id="token">(Disembunyikan untuk keamanan)</span></p>
-            <button id="logoutBtn">Logout</button>
-        </div>
-        
-        <div id="videoSection" class="video-section">
-            <h2>Video Tutorial Pi Network</h2>
-            <p>Berikut video resmi dari Pi Core Team tentang pengembangan aplikasi di ekosistem Pi.</p>
-            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%;">
-                <iframe 
-                    src="https://www.youtube.com/embed/q8R_-R8Wkls" 
-                    title="Pi Network Developer Tutorial" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen
-                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;">
-                </iframe>
-            </div>
-            <p style="margin-top: 20px; font-size: 0.9em;">
-                Video ini menunjukkan cara akses Pi Browser dan Developer Portal. Anda dapat mengganti URL dengan video lain yang relevan.
-            </p>
-        </div>
-        
-        <p id="error" class="error"></p>
+  <h1>Pasar Pi Indonesia</h1>
+  <p>Selamat datang di marketplace komunitas Pioneers Indonesia. Belanja produk lokal dengan Pi!</p>
+  
+  <div id="user-info"></div>
+  <button onclick="authenticateUser()">Login dengan Pi</button>
+
+  <div id="products">
+    <!-- Daftar Produk Statis (bisa diganti dengan data dinamis dari backend) -->
+    <div class="product">
+      <h3>Batik Parang</h3>
+      <p>Harga: 10 Pi</p>
+      <img src="https://example.com/batik.jpg" alt="Batik Parang"> <!-- Ganti dengan URL gambar asli -->
+      <button onclick="buyProduct('Batik Parang', 10)">Beli dengan Pi</button>
     </div>
+    <div class="product">
+      <h3>Rendang Padang</h3>
+      <p>Harga: 5 Pi</p>
+      <img src="https://example.com/rendang.jpg" alt="Rendang"> <!-- Ganti dengan URL gambar asli -->
+      <button onclick="buyProduct('Rendang Padang', 5)">Beli dengan Pi</button>
+    </div>
+    <div class="product">
+      <h3>Kerajinan Anyaman</h3>
+      <p>Harga: 8 Pi</p>
+      <img src="https://example.com/anyaman.jpg" alt="Anyaman"> <!-- Ganti dengan URL gambar asli -->
+      <button onclick="buyProduct('Kerajinan Anyaman', 8)">Beli dengan Pi</button>
+    </div>
+  </div>
 
-    <!-- Integrasi Pi SDK Resmi (Versi 2.0 - Terbaru per Januari 2026) -->
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script>
-        // Inisialisasi Pi SDK
-        Pi.init({ version: "2.0" });
+  <script>
+    let userUid = null;
 
-        const loginBtn = document.getElementById('loginBtn');
-        const profileDiv = document.getElementById('profile');
-        const videoSection = document.getElementById('videoSection');
-        const usernameSpan = document.getElementById('username');
-        const uidSpan = document.getElementById('uid');
-        const errorP = document.getElementById('error');
-        const logoutBtn = document.getElementById('logoutBtn');
+    function authenticateUser() {
+      const scopes = ['username', 'payments'];
 
-        // Fungsi autentikasi
-        async function authenticatePi() {
-            try {
-                errorP.textContent = '';
-                const scopes = ['username'];
-                const onIncompletePaymentFound = (payment) => {
-                    console.log('Pembayaran tidak lengkap:', payment);
-                };
+      function onIncompletePaymentFound(payment) {
+        console.log('Pembayaran tidak lengkap ditemukan:', payment);
+        // Kirim ke backend untuk handling (cancel/complete)
+      }
 
-                const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                
-                // Tampilkan data profil
-                usernameSpan.textContent = authResult.user.username || 'Tidak tersedia';
-                uidSpan.textContent = authResult.user.uid;
-                profileDiv.style.display = 'block';
-                videoSection.style.display = 'block';
-                loginBtn.style.display = 'none';
-
-                console.log('Autentikasi sukses:', authResult);
-            } catch (err) {
-                errorP.textContent = 'Gagal autentikasi: ' + (err.message || 'Harap akses melalui Pi Browser resmi.');
-                console.error(err);
-            }
-        }
-
-        // Event listener
-        loginBtn.addEventListener('click', authenticatePi);
-        logoutBtn.addEventListener('click', () => {
-            profileDiv.style.display = 'none';
-            videoSection.style.display = 'none';
-            loginBtn.style.display = 'block';
-            errorP.textContent = '';
+      Pi.authenticate(scopes, onIncompletePaymentFound)
+        .then((auth) => {
+          document.getElementById('user-info').innerHTML = `<p>Halo, ${auth.user.username}! (UID: ${auth.user.uid})</p>`;
+          userUid = auth.user.uid;
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('Autentikasi gagal: ' + error);
         });
-    </script>
+    }
+
+    function buyProduct(productName, amount) {
+      if (!userUid) {
+        alert('Silakan login terlebih dahulu dengan Pi.');
+        authenticateUser();
+        return;
+      }
+
+      const paymentData = {
+        amount: amount,
+        memo: `Pembelian ${productName} di Pasar Pi Indonesia`,
+        metadata: { product: productName, buyerUid: userUid }
+      };
+
+      const callbacks = {
+        onReadyForServerApproval: function(paymentId) {
+          console.log('Payment ID:', paymentId);
+          // Kirim paymentId ke backend untuk approve via Pi API
+          alert('Pembayaran siap diverifikasi server. Payment ID: ' + paymentId);
+        },
+        onReadyForServerCompletion: function(paymentId, txid) {
+          console.log('Pembayaran selesai. TXID:', txid);
+          // Kirim ke backend untuk complete
+          alert('Pembayaran berhasil! Terima kasih telah berbelanja.');
+        },
+        onCancel: function(paymentId) {
+          console.log('Pembayaran dibatalkan:', paymentId);
+          alert('Pembayaran dibatalkan.');
+        },
+        onError: function(error, payment) {
+          console.error(error);
+          alert('Error: ' + error.message);
+        }
+      };
+
+      Pi.createPayment(paymentData, callbacks);
+    }
+  </script>
 </body>
 </html>
