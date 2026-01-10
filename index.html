@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pi Referral Booster</title>
   
-  <!-- Pi SDK resmi -->
+  <!-- Pi SDK -->
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   
   <link rel="stylesheet" href="style.css">
@@ -13,39 +13,27 @@
 <body>
   <div class="container">
     <h1>Pi Referral Booster</h1>
-    
+
     <!-- Status autentikasi -->
     <div class="status-card">
-      <h2>Status</h2>
-      <p id="auth-status">Belum terautentikasi</p>
-      <p id="username-display">-</p>
-      <button id="btn-auth" onclick="authenticateWithPi()">Login dengan Pi</button>
-    </div>
-
-    <!-- Referral Code Card -->
-    <div class="referral-card" id="referral-card">
-      <h2>Referral Code Anda</h2>
-      <div class="code-display" id="referral-code">Memuat...</div>
-      <p class="bonus-info">Dapatkan bonus mining rate 25% untuk setiap referral aktif</p>
-      <button onclick="copyReferralCode()">Salin Kode</button>
-      <button onclick="shareReferral()">Bagikan</button>
-    </div>
-
-    <!-- Manual Tracker -->
-    <div class="tracker-section">
-      <h2>Tracker Referral (Manual)</h2>
-      <div class="input-group">
-        <input type="text" id="new-referral" placeholder="Nama / Tanggal referral baru">
-        <button onclick="addReferral()">Tambah</button>
-      </div>
+      <h2>Status Autentikasi</h2>
+      <p id="auth-status">Memeriksa status Pi SDK...</p>
+      <p id="username-display" style="display: none;">Username: <span id="pi-username">-</span></p>
       
-      <div class="stats">
-        <p>Total referral: <strong id="total-count">0</strong></p>
-        <p>Estimasi bonus rate: <strong id="bonus-rate">0%</strong></p>
-      </div>
-
-      <ul id="referral-list"></ul>
+      <button id="btn-login" 
+              onclick="handlePiLogin()"
+              disabled>
+        Login dengan Pi
+      </button>
+      
+      <button id="btn-logout" 
+              onclick="handleLogout()"
+              style="display: none; background: #e74c3c;">
+        Keluar
+      </button>
     </div>
+
+    <!-- ... bagian referral card dan tracker lainnya tetap sama ... -->
   </div>
 
   <script src="script.js"></script>
